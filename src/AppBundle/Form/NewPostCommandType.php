@@ -2,37 +2,32 @@
 
 namespace AppBundle\Form;
 
+use AppBundle\Command\NewPostCommand;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class PostType extends AbstractType
+class NewPostCommandType extends AbstractType
 {
-    /**
-     * {@inheritdoc}
-     */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('message')
+            ->add('message', TextareaType::class, [
+                'required' => true,
+            ])
         ;
     }
-    
-    /**
-     * {@inheritdoc}
-     */
+
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefaults(array(
-            'data_class' => 'AppBundle\Entity\Post'
-        ));
+        $resolver->setDefaults([
+            'data_class' => NewPostCommand::class
+        ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getBlockPrefix()
     {
-        return 'appbundle_post';
+        return 'appbundle_new_post_command';
     }
 }

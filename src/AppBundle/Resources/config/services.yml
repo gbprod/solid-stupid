@@ -1,0 +1,65 @@
+services:
+    app.repository.post:
+        class: AppBundle\Post\DoctrinePostRepository
+        arguments:
+            - '@doctrine.orm.default_entity_manager'
+
+    app.controller.post_index:
+        class: AppBundle\Controller\PostIndexController
+        arguments:
+            - '@app.repository.post'
+            - '@templating'
+
+    app.controller.new_post:
+        class: AppBundle\Controller\NewPostController
+        arguments:
+            - '@app.handler.new_post'
+            - '@form.factory'
+            - '@templating'
+            - '@router'
+
+    app.handler.new_post:
+        class: AppBundle\Handler\NewPostHandler
+        arguments:
+            - '@app.repository.post'
+            - '@event_dispatcher'
+
+    app.notify_post_listener:
+        class: AppBundle\Post\Listener\NotifyPostListener
+        arguments:
+            - '@app.notifier'
+            - '@app.usernames_finder'
+        tags:
+            - { name: kernel.event_listener, event: 'AppBundle\Post\Event\PostWasCreated', method: onNewPost }
+            - { name: kernel.event_listener, event: 'AppBundle\Post\Event\PostWasUpdated', method: onUpdatedPost }
+
+    app.notifier:
+        class: AppBundle\Notifier\EmailNotifier
+        arguments:
+            - '@mailer'
+            - '@templating'
+
+    app.usernames_finder:
+        class: AppBundle\Notifier\TwitterLikeUsernameFinder
+
+    app.controller.show_post:
+        class: AppBundle\Controller\ShowPostController
+        arguments:
+            - '@app.repository.post'
+            - '@templating'
+
+    app.handler.update_post:
+        class: AppBundle\Handler\UpdatePostHandler
+        arguments:
+            - '@app.repository.post'
+            - '@event_dispatcher'
+
+    app.controller.update_post:
+        class: AppBundle\Controller\UpdatePostController
+        arguments:
+            - '@app.handler.update_post'
+            - '@form.factory'
+            - '@templating'
+            - '@router'
+            - '@app.repository.post'
+
