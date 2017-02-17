@@ -46,14 +46,12 @@ class PostController extends Controller
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+
+            $this->notify($post);
+
             $em = $this->getDoctrine()->getManager();
             $em->persist($post);
             $em->flush($post);
-
-            $extract = Extract::getInstance();
-            $usernames = $extract->extract($post->getMessage());
-
-            $this->notify($post, $usernames);
 
             return $this->redirectToRoute('post_show', array('id' => $post->getId()));
         }
@@ -89,6 +87,9 @@ class PostController extends Controller
         $editForm->handleRequest($request);
 
         if ($editForm->isSubmitted() && $editForm->isValid()) {
+            $this->notify($post, true);
+
+            $this->getDoctrine()->getManager()->persist($post);
             $this->getDoctrine()->getManager()->flush();
 
             return $this->redirectToRoute('post_edit', array('id' => $post->getId()));
@@ -100,11 +101,14 @@ class PostController extends Controller
         ));
     }
 
-    private function notify($post, $usernames)
+    private function notify(Post $post, $old = false)
     {
+        $extract = Extract::getInstance();
+        $usernames = $extract->extract($post->getMessage());
+
         foreach ($usernames as $u) {
             $i = \Swift_Message::newInstance()
-                ->setSubject('New message !')
+                ->setSubject($old ? 'Updated' : 'New' . ' message !')
                 ->setFrom('postit@example.com')
                 ->setTo($u.'@example.com')
                 ->setBody(
